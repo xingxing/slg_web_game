@@ -46,6 +46,22 @@ class City < ActiveRecord::Base
     food_increase + self.food
   end
 
+  # 更新资源(金子、人口、食物)
+  # @param [Hash]
+  def update_resource attrs
+    self.update_attributes attrs
+    self.touch(:last_updated_resource_at)
+  end
+
+  # 调节税率
+  def adjust_tax_rate tax_rate
+    self.update_attributes :tax_rate => tax_rate
+  end
+
+  # TODO: 迁都
+  def move_the_capital
+  end
+
   private 
 
   # 检查 玩家唯一首都

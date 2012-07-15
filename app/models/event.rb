@@ -6,14 +6,27 @@ class Event < ActiveRecord::Base
   Type = { :tax => 1 }
 
   class << self
-    # 计划收税
+    # 计划征税
     # @param [Fixnum] 城市ID
     def plans_to_tax city_id
       event = self.create(
-                       :city_id => city_id ,
-                       :ends_at =>  1.hour.since(DateTime.now),
-                       :event_type => Type[:tax]
-                       )
+                          :city_id => city_id ,
+                          :ends_at =>  1.hour.since(DateTime.now),
+                          :event_type => Type[:tax]
+                          )
+      event
     end
+  end
+
+  # 运行事件
+  def ends
+    method_name = Type.find{ | _ , code | code == self.event_type }
+    self.send(method_name)
+    self.destory
+  end
+
+  # TODO: 征税
+  def tax
+    
   end
 end
