@@ -36,6 +36,11 @@ describe City do
     it "初始税率为20%" do
       @new_city.tax_rate.should == 0.2
     end
+
+    it "自城市创建伊始即开始征税" do
+      Event.should_receive(:plans_to_tax)
+      City.build(1,rand(200),rand(200))
+    end
   end
 
   describe "当前城市信息" do

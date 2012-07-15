@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120714100816) do
+ActiveRecord::Schema.define(:version => 20120715151313) do
 
   create_table "cities", :force => true do |t|
     t.integer  "player_id"
@@ -27,6 +27,15 @@ ActiveRecord::Schema.define(:version => 20120714100816) do
     t.integer  "lock_version"
     t.datetime "created_at",                                             :null => false
     t.datetime "updated_at",                                             :null => false
+  end
+
+  create_table "events", :force => true do |t|
+    t.integer  "city_id"
+    t.integer  "event_type"
+    t.time     "ends_at"
+    t.text     "content"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
 end

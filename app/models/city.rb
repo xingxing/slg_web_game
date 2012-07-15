@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 class City < ActiveRecord::Base
-  validates_uniqueness_of :player_id, :scope => :capital,:message => "每个玩家只能有一座首都"
-  
+
+  validate :only_capital
+
   # 普通城市每小时产出1,000食物 
   AgriculturalOutputPerHour = 1000
   # 首都城市每小时产出10,000食物
@@ -14,15 +15,19 @@ class City < ActiveRecord::Base
     # @param [Fixnum] 城市的左上角y坐标
     # @param [City] 新城
     def build player_id,x,y
-      self.new(
-               :player_id => player_id,
-               :upper_left_x => x,
-               :upper_left_y => y,
-               :tax_rate  => 0.2 ,
-               :population => 100,
-               :glod =>  0,
-               :food =>  0
-               )
+      new_city = self.new(
+                          :player_id => player_id,
+                          :upper_left_x => x,
+                          :upper_left_y => y,
+                          :tax_rate  => 0.2 ,
+                          :population => 100,
+                          :glod =>  0,
+                          :food =>  0
+                          )
+      if new_city.save!
+        Event.plans_to_tax new_city.id
+      end
+      new_city
     end
   end  
 
@@ -42,6 +47,11 @@ class City < ActiveRecord::Base
   end
 
   private 
+
+  # 检查 玩家唯一首都
+  def only_capital
+    errors.add(:capital, ("每个玩家只能有一座首都")) if City.where(player_id: self.player_id,capital: true ).count > 0 and self.capital
+  end
 
   # 距离上次更新 的 食物增长
   # (当前时间 - 上一次更新时间)*每小时食物产量
