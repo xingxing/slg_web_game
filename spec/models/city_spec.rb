@@ -43,21 +43,17 @@ describe City do
     end
   end
 
-  describe "当前城市信息" do
+  describe "当前城市资源信息" do
     before do
       @beijing = FactoryGirl.create(:beijing)
     end
 
     it "城市人口" do
-      @beijing.current_info[:population].should == 100
-    end
-    
-    it "税率" do
-      @beijing.current_info[:tax_rate].should == 0.2
+      @beijing.current_resource_info[:population].should == 100
     end
 
     it "金子数量" do
-      @beijing.current_info[:glod].should == 0
+      @beijing.current_resource_info[:glod].should == 0
     end
 
     describe "食物数量" do
@@ -65,7 +61,7 @@ describe City do
         now = Time.now
         hours = rand(10)
         @beijing.last_updated_resource_at = now.ago(3600*hours)
-        @beijing.current_info[:food].should == 10000 * hours + @beijing.food
+        @beijing.current_resource_info[:food].should == 10000 * hours + @beijing.food
       end
     end
   end
@@ -93,7 +89,7 @@ describe City do
     end
 
     it "应该 用当前城市信息" do
-      @beijing.should_receive(:update_attributes).with(@beijing.current_info)
+      @beijing.should_receive(:update_attributes).with(@beijing.current_resource_info)
       @beijing.update_resource
     end
 

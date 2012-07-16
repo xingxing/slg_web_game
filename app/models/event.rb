@@ -18,33 +18,34 @@ class Event < ActiveRecord::Base
     end
   end
 
-  # 运行事件
+  # 完成事件
   def ends
     method_name = Type.invert[self.event_type]
     self.send(method_name)
     self.destroy
   end
 
-  # TODO: 征税
+  # 征税
   def tax
     city = self.city
     City.transaction do
-      city.update_attributes :glod => (city.population * city.tax_rate).round
       if city.population < city.tax_rate * 1000
-        city.update_attributes :population => city.population+min_1_and_max_1000(city.population*0.05)
+        city.update_resource(
+                             :glod => (city.population * city.tax_rate).round , 
+                             :population => city.population+min_1_and_max_1000(city.population*0.05))
       elsif city.population > city.tax_rate * 1000
-        city.update_attributes :population => city.population-min_1_and_max_1000(city.population*0.05)        end
+        city.update_resource(
+                             :glod => (city.population * city.tax_rate).round ,
+                             :population => city.population-min_1_and_max_1000(city.population*0.05))
+      end
     end
+    Event.plans_to_tax city.id
   end
 
   private 
   
   # 最少是1最大是1000 
   def min_1_and_max_1000 num
-    if num >= 1000
-      1000
-    else
-     [1,num].max.to_i
-    end
+    num >= 1000 ? 1000 : [1,num].max.to_i
   end
 end

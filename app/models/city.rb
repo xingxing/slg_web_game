@@ -48,13 +48,17 @@ class City < ActiveRecord::Base
     end
   end  
 
-  # 当前城市信息:食物、金子、人口以及税率状况
+  # 当前城市资源信息:食物、金子、人口
   # @return[Hash]  
-  def current_info  
+  def current_resource_info  
     { population: self.population,
-      tax_rate: self.tax_rate,
       glod: self.glod,
       food: self.current_food }
+  end
+  
+  # 查询 城市当前信息 
+  def current_info
+    {tax_rate: self.tax_rate}.merge(self.current_resource_info)
   end
 
   # 当前食物数量
@@ -69,8 +73,8 @@ class City < ActiveRecord::Base
   end
 
   # 更新资源
-  def update_resource
-    self.update_attributes self.current_info
+  def update_resource resource={}
+    self.update_attributes self.current_resource_info.merge(resource)
     self.touch(:last_updated_resource_at)
   end
 

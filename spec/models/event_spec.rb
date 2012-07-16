@@ -17,16 +17,49 @@ describe Event do
     end
   end
 
+  describe "完成事件" do
+    before do
+      @tax = FactoryGirl.create(:tax)
+    end
+
+    it "应该 调用事件处理方法" do
+      @tax.should_receive(:tax)
+      @tax.ends
+    end
+
+    it "应该 删除事件记录" do
+      @tax.should_receive(:destroy)
+      @tax.ends
+    end
+  end
+
   describe "征税" do
     before do
       @tax = FactoryGirl.create(:tax)
     end
-    
+
+    it "应该 更新城市资源" do
+      @tax.city.should_receive(:update_resource)
+      @tax.ends
+    end
+
+
     it "征税金额 = 人口*税率" do
       population = @tax.city.population  
       tax_rate    = @tax.city.tax_rate
       @tax.ends
       @tax.city.glod.should == (population*tax_rate).round
+    end
+
+    it "应该 计划下次收税的时间" do
+      Event.should_receive(:plans_to_tax).with(@tax.city.id)
+      @tax.ends
+    end
+    
+    it "粮食增长相应数量" do
+      @tax.city.stub(:last_updated_resource_at).and_return(1.hour.ago)
+      @tax.ends
+      @tax.city.food.should == City::AgriculturalOutputPerHourOfTheCapital
     end
 
     context "如果 人口数量 < 税率*1000" do
