@@ -23,20 +23,62 @@ describe Event do
     end
     
     it "征税金额 = 人口*税率" do
+      population = @tax.city.population  
+      tax_rate    = @tax.city.tax_rate
       @tax.ends
-      @tax.city.glod = (@tax.city.population * @tax.city.tax_rate).round
+      @tax.city.glod.should == (population*tax_rate).round
     end
 
     context "如果 人口数量 < 税率*1000" do
-      it "人口数量提升5%"
-      it "人口最少增加单位为1"
-      it "人口最大增加单位为1000"
+      before do
+        @shanghai = FactoryGirl.create(:shanghai,:tax_rate => 0.3,:population => 299)
+        @tax.stub!(:city).and_return(@shanghai)
+      end
+
+      it "人口数量提升5%" do
+        @tax.ends
+        @shanghai.population.should == (299*(1+0.05)).to_i
+      end
+
+      it "人口最少增加单位为1" do
+        shanghai = FactoryGirl.create(:shanghai,:tax_rate => 0.3,:population => 19)
+        @tax.stub!(:city).and_return(shanghai)
+        @tax.ends
+        shanghai.population.should == 19+1
+      end
+
+      it "人口最大增加单位为1000" do
+        shanghai = FactoryGirl.create(:shanghai,:tax_rate => 30,:population => 21000 )
+        @tax.stub!(:city).and_return(shanghai)
+        @tax.ends
+        shanghai.population.should == 21000 + 1000
+      end
     end
     
     context "如果 人口数量 > 税率*1000" do
-      it "人口数量减少5%"
-      it "人口最少减少单位为1"
-      it "人口最大增加单位为1000"
+      before do
+        @shanghai = FactoryGirl.create(:shanghai,:tax_rate => 0.3,:population => 400)
+        @tax.stub!(:city).and_return(@shanghai)
+      end
+
+      it "人口数量减少5%" do
+        @tax.ends 
+        @shanghai.population.should == 400 - (400*0.05).to_i 
+      end
+      
+      it "人口最少减少单位为1" do
+        shanghai = FactoryGirl.create(:shanghai,:tax_rate => 0.003,:population => 19)
+        @tax.stub!(:city).and_return(shanghai)
+        @tax.ends
+        shanghai.population.should == 19-1  
+      end
+
+      it "人口最大增加单位为1000" do
+        shanghai = FactoryGirl.create(:shanghai,:tax_rate => 0.3,:population => 21000)
+        @tax.stub!(:city).and_return(shanghai)
+        @tax.ends
+        shanghai.population.should == 21000 - 1000
+      end
     end
   end
 end
