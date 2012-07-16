@@ -29,6 +29,23 @@ class City < ActiveRecord::Base
       end
       new_city
     end
+
+    # 首都
+    def capital_of player_id
+      self.find_by_player_id_and_capital player_id,true
+    end
+
+    # 迁都
+    def move_the_capital_to player_id,city_id
+      self.transaction do
+        capital = self.capital_of player_id
+        capital_to_be = self.find_by_player_id_and_id player_id,city_id
+        capital.update_resource
+        capital_to_be.update_resource
+        capital.update_attributes(:capital => false)
+        capital_to_be.update_attributes(:capital => true)
+      end
+    end
   end  
 
   # 当前城市信息:食物、金子、人口以及税率状况
@@ -46,20 +63,15 @@ class City < ActiveRecord::Base
     food_increase + self.food
   end
 
-  # 更新资源(金子、人口、食物)
-  # @param [Hash]
-  def update_resource attrs
-    self.update_attributes attrs
-    self.touch(:last_updated_resource_at)
-  end
-
   # 调节税率
   def adjust_tax_rate tax_rate
     self.update_attributes :tax_rate => tax_rate
   end
 
-  # TODO: 迁都
-  def move_the_capital
+  # 更新资源
+  def update_resource
+    self.update_attributes self.current_info
+    self.touch(:last_updated_resource_at)
   end
 
   private 
@@ -73,7 +85,7 @@ class City < ActiveRecord::Base
   # (当前时间 - 上一次更新时间)*每小时食物产量
   # @return[Fixnum]
   def food_increase
-    agricultural_output_per_hour = self.capital ? AgriculturalOutputPerHourOfTheCapital : Agricultural_Output_Per_Hour
+    agricultural_output_per_hour = self.capital ? AgriculturalOutputPerHourOfTheCapital : AgriculturalOutputPerHour
     last_updated_resource_time   = self.last_updated_resource_at || self.created_at
     ((Time.now - last_updated_resource_time) / 3600 * agricultural_output_per_hour).round
   end

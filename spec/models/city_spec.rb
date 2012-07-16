@@ -69,5 +69,73 @@ describe City do
       end
     end
   end
+
+  describe "调节税率" do
+    it "应该 改变税率" do
+      shanghai = FactoryGirl.build(:shanghai)
+      shanghai.adjust_tax_rate(0.5)
+      shanghai.tax_rate.should == 0.5
+    end
+  end
+
+  
+  describe "得到指定玩家首都" do
+    it "应该返回首都" do
+      beijing  = FactoryGirl.create(:beijing)
+      shanghai = FactoryGirl.create(:shanghai)
+      City.capital_of(1).should == beijing
+    end
+  end
+
+  describe "更新城市资源信息" do
+    before do
+      @beijing = FactoryGirl.create(:beijing)
+    end
+
+    it "应该 用当前城市信息" do
+      @beijing.should_receive(:update_attributes).with(@beijing.current_info)
+      @beijing.update_resource
+    end
+
+    it "应该 touch最后更新资源的时间戳" do
+      @beijing.should_receive(:touch).with(:last_updated_resource_at)
+      @beijing.update_resource
+    end
+  end
+
+  describe "改变税率" do
+    before do 
+      @beijing  = FactoryGirl.create(:beijing)
+      @shanghai = FactoryGirl.create(:shanghai)
+      City.stub(:capital_of).and_return(@beijing)
+      City.stub(:find_by_player_id_and_id).and_return(@shanghai)
+    end
+
+    it "应该 找到玩家的首都" do
+      City.should_receive(:capital_of).with(1)
+      City.move_the_capital_to(1,@shanghai.id)
+    end
+
+    it "应该 找到玩家将要成为首都的城市(准首都)" do
+      City.should_receive(:find_by_player_id_and_id).with(1,@shanghai.id)
+      City.move_the_capital_to(1,@shanghai.id)
+    end
+
+    it "应该 更新首都的资源" do
+      @beijing.should_receive(:update_resource)
+      City.move_the_capital_to(1,@shanghai.id)
+    end
+
+    it "应该 更新准首都的资源" do
+      @shanghai.should_receive(:update_resource)
+      City.move_the_capital_to(1,@shanghai.id)
+    end
+
+    it "应该 更改首都属性" do
+      City.move_the_capital_to(1,@shanghai.id)
+      @shanghai.capital.should == true
+      @beijing.capital.should  == false
+    end
+  end
 end
 

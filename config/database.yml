@@ -14,9 +14,10 @@ development:
   reconnect: false
   database: kabam_development
   pool: 5
+  host: localhost
   username: root
   password: root123
-  socket: /var/run/mysqld/mysqld.sock
+
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -27,16 +28,6 @@ test:
   reconnect: false
   database: kabam_test
   pool: 5
+  host: localhost
   username: root
   password: root123
-  socket: /var/run/mysqld/mysqld.sock
-
-production:
-  adapter: mysql2
-  encoding: utf8
-  reconnect: false
-  database: kabam_production
-  pool: 5
-  username: root
-  password:
-  socket: /var/run/mysqld/mysqld.sock
