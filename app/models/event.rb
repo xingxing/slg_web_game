@@ -20,9 +20,9 @@ class Event < ActiveRecord::Base
 
   # 运行事件
   def ends
-    method_name = Type.find{ | _ , code | code == self.event_type }
+    method_name = Type.invert[self.event_type]
     self.send(method_name)
-    self.destory
+    self.destroy
   end
 
   # TODO: 征税
