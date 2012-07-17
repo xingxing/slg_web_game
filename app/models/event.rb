@@ -9,7 +9,7 @@ class Event < ActiveRecord::Base
   Type = {
     :tax => 1,   # 征税
     :train => 2, # 训练部队
-    :build => 3  # 建造房屋或者士兵
+    :build => 3  # 建造单位(房屋或者士兵)
   }
 
   class << self
@@ -93,6 +93,16 @@ class Event < ActiveRecord::Base
     Event.plans_to_tax city.id
   end
 
+  # TODO: 建造单位
+  def build
+    
+  end
+
+  # 训练一批结束
+  def train
+    # 什么也不用做
+  end
+
   # 事件数据
   # @return[Hash]
   def event_content
@@ -112,6 +122,13 @@ class Event < ActiveRecord::Base
       []
     end
   end
+
+  # TODO: 取消事件计划
+  def cancel
+  end
+
+  
+
 
   private 
   

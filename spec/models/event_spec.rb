@@ -137,11 +137,19 @@ describe Event do
         end
 
         it "新训练不会被保存" do
+          Event.plans_to_train(@shanghai.id,:pikemen,10)
           Event.where(city_id: @shanghai.id,event_type: Event::Type[:train]).size.should == 5 
         end
 
         it "新训练的子事件不会被保存" do
+          Event.plans_to_train(@shanghai.id,:pikemen,10)
           Event.where(city_id: @shanghai.id,event_type: Event::Type[:build]).size.should == 50
+        end
+        
+        it "城市的人口和金子不会减少" do
+          Event.plans_to_train(@shanghai.id,:pikemen,10)
+          City.find(@shanghai.id).glod.should == 100 - 10 * 5
+          City.find(@shanghai.id).population.should == 900 - 10 * 5
         end
       end
 
@@ -171,12 +179,12 @@ describe Event do
 
       it "应该 花费该城市的训练金" do
         @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
-        @shanghai.glod = 100 - 10
+        City.find(@shanghai.id).glod.should == 100 - 10
       end
 
       it "应该 将城市人口去掉训练的人数" do
         @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
-        @shanghai.population = 900 - 10
+        City.find(@shanghai.id).population.should == 900 - 10
       end
     end
     
@@ -201,7 +209,5 @@ describe Event do
         @training.should == nil
       end
     end
-
   end
-
 end

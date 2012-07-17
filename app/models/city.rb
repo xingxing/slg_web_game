@@ -8,6 +8,7 @@ class City < ActiveRecord::Base
   # 首都城市每小时产出10,000食物
   AgriculturalOutputPerHourOfTheCapital = 10000
 
+  has_many :events 
   has_many :troops
 
   Troop::SoldierTypes.each do |soldier_type,code|

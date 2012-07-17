@@ -5,7 +5,8 @@ class CreateTroops < ActiveRecord::Migration
       t.integer :city_id      
       t.integer :soldier_type # 兵种
       t.integer :number       # 人数  
-      
+
+      t.integer :lock_version        
       t.timestamps
     end
   end

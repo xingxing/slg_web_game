@@ -73,7 +73,6 @@ describe City do
       shanghai.tax_rate.should == 0.5
     end
   end
-
   
   describe "得到指定玩家首都" do
     it "应该返回首都" do
