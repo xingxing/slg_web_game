@@ -73,7 +73,7 @@ class City < ActiveRecord::Base
   # 目前训练的进展 
   def current_training_progress
     self.events.where(:event_type=>Event::Type[:train]).map do |training|
-      "#{training.created_at.to_formatted_s(:db)}开始的训练完成#{ (((training.event_content[:number]-training.sub_events.size) / training.event_content[:number].to_f).round(2) * 100).to_i }%"
+      "#{training.created_at.to_formatted_s(:db)}开始训练的#{training.event_content[:soldier_type]}完成#{ (((training.event_content[:number]-training.sub_events.size) / training.event_content[:number].to_f).round(2) * 100).to_i }%"
     end
   end
 

@@ -173,7 +173,14 @@ describe City do
       @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
       @training.sub_events[0].ends
       @training.sub_events[1].ends
-      @shanghai.reload.current_training_progress[0].should == "#{@training.created_at.to_formatted_s(:db)}开始的训练完成20%" 
+      @shanghai.reload.current_training_progress[0].should == "#{@training.created_at.to_formatted_s(:db)}开始训练的pikemen完成20%" 
+    end
+    
+    context "如果 没有训练" do
+      it "应该 返回 nil" do
+        @shanghai = FactoryGirl.create(:shanghai,:glod => 1000,:population => 1000)
+        @shanghai.reload.current_training_progress == nil
+      end
     end
   end
 end
