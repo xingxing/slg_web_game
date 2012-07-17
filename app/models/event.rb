@@ -63,11 +63,12 @@ class Event < ActiveRecord::Base
     # 计划建造士兵
     # @param [Fixnum] 城市ID
     # @param [Symbol] 兵种
-    # @param [Fixnum] 建造队列中的索引(从1开始)
+    # @param [Fixnum] 建造队列中的位置(从1开始)
     def plans_to_build_soldier city_id,soldier_type,queue_index=1
-      self.create(city_id: city_id,
-                  event_type: Type[:build],
-                  ends_at: (Troop::TrainTime[soldier_type] * queue_index).minutes.since )
+      self.create( city_id: city_id,
+                   event_type: Type[:build],
+                   content: Oj.dump({ klass: 'Troop' , :attrs => {soldier_type: soldier_type}}) ,
+                   ends_at: (Troop::TrainTime[soldier_type] * queue_index).minutes.since )
     end
   end
 
@@ -117,7 +118,7 @@ class Event < ActiveRecord::Base
   # @return[Array<Event>] 子事件集合
   def sub_events
     unless event_content[:sub_event_ids].blank?
-      Event.where(id: event_content[:sub_event_ids]).order("ends_at DESC").all
+      Event.where(id: event_content[:sub_event_ids]).order("ends_at ASC").all
     else
       []
     end

@@ -177,6 +177,13 @@ describe Event do
         @training.ends_at.should == @training.sub_events.last.ends_at
       end
 
+      it "子事件结束时间间隔兵种单位建造时间" do
+        @training = Event.plans_to_train(@shanghai.id,:cavalry,3)
+        sub_events = @training.sub_events
+        (sub_events[2].ends_at - sub_events[1].ends_at).should == Troop::TrainTime[:cavalry] * 60
+        (sub_events[2].ends_at - sub_events[1].ends_at).should == (sub_events[1].ends_at - sub_events[0].ends_at)
+      end
+
       it "应该 花费该城市的训练金" do
         @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
         City.find(@shanghai.id).glod.should == 100 - 10
