@@ -225,4 +225,29 @@ describe Event do
       build_soldier.build
     end
   end
+
+  describe "取消一批训练" do
+    before do
+      @shanghai = FactoryGirl.create(:shanghai,:glod => 100,:population => 900)
+      @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
+    end
+
+    it "应该 删除尚未完成的子事件" do
+      sub_event_ids = @training.event_content[:sub_event_ids]
+      @training.cancel_train
+      Event.where(id: sub_event_ids).size.should == 0
+    end
+
+    it "应该 更新城市的资源" do
+      @training.city.should_receive(:update_resource)
+      @training.cancel_train
+    end
+
+    it "应该 将未完成的士兵增加到城市人口" do
+      @training.sub_events.first.destroy
+      @training.cancel_train
+      @shanghai.reload.population.should == 900-10+9
+    end
+  end
+
 end

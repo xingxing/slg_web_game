@@ -99,8 +99,11 @@ class Event < ActiveRecord::Base
     Kernel.const_get(self.event_content[:klass]).build(self.event_content[:attrs]) unless self.event_content[:klass].blank? 
   end
   
-  # TODO: 取消建造单位
-  def cancel_build
+  # 取消一批训练
+  def cancel_train
+    city = self.city
+    city.update_resource(:population => (city.population + self.sub_events.map{|v| v.destroy }.size))
+    
   end
 
   # 训练一批结束
@@ -119,7 +122,6 @@ class Event < ActiveRecord::Base
   def sub_events
     event_content[:sub_event_ids].blank? ? [] : Event.where(id: event_content[:sub_event_ids]).order("ends_at ASC").all
   end
-
 
   private 
   
