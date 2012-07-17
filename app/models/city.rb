@@ -8,6 +8,14 @@ class City < ActiveRecord::Base
   # 首都城市每小时产出10,000食物
   AgriculturalOutputPerHourOfTheCapital = 10000
 
+  has_many :troops
+
+  Troop::SoldierTypes.each do |soldier_type,code|
+    has_one soldier_type,:class_name => "Troop",:conditions => ["troops.soldier_type = ?",code]
+
+    delegate :number, :to => soldier_type,:prefix => soldier_type ,:allow_nil => true
+  end
+
   class  << self 
     # 建立一座城市
     # @param [Fixnum] 玩家ID
@@ -82,7 +90,7 @@ class City < ActiveRecord::Base
 
   # 检查 玩家唯一首都
   def only_capital
-    errors.add(:capital, ("每个玩家只能有一座首都")) if City.where(player_id: self.player_id,capital: true ).count > 0 and self.capital
+    errors.add(:capital,"每个玩家只能有一座首都") if City.where(player_id: self.player_id,capital: true ).count > 0 and self.capital
   end
 
   # 距离上次更新 的 食物增长

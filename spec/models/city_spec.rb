@@ -133,5 +133,32 @@ describe City do
       @beijing.capital.should  == false
     end
   end
+
+  describe "查询城市各兵种数量" do
+    it "长枪兵数量" do
+      @pikemen = FactoryGirl.create(:pikemen,:number => 1)
+      @pikemen.city.pikemen_number.should == 1
+    end
+
+    it "弓箭手数量" do
+      @archer  = FactoryGirl.create(:archer,:number => 2)
+      @archer.city.archer_number.should == 2
+    end
+
+    it "骑士数量" do 
+      @cavalry = FactoryGirl.create(:cavalry,:number => 3)
+      @cavalry.city.cavalry_number.should == 3
+    end
+
+    it "当不存 一个兵种的部队时返回nil" do
+      @troop = FactoryGirl.create(:cavalry,:number => 3)
+      @troop.city.pikemen_number.should == nil
+    end
+
+    it "某部队人数为0时，返回0" do
+      @cavalry = FactoryGirl.create(:cavalry,:number => 0)
+      @cavalry.city.cavalry_number.should == 0
+    end
+  end
 end
 
