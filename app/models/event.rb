@@ -96,7 +96,10 @@ class Event < ActiveRecord::Base
 
   # TODO: 建造单位
   def build
-    
+  end
+  
+  # TODO: 取消建造单位
+  def cancel_build
   end
 
   # 训练一批结束
@@ -123,12 +126,6 @@ class Event < ActiveRecord::Base
       []
     end
   end
-
-  # TODO: 取消事件计划
-  def cancel
-  end
-
-  
 
 
   private 

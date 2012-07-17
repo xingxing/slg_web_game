@@ -65,7 +65,7 @@ class City < ActiveRecord::Base
       food: self.current_food }
   end
   
-  # 查询 城市当前信息 
+  # TODO:查询 城市当前信息  出每一个兵种的士兵数量，以及目前训练的进展（如果有的话）、排队等待接受训练的士兵情况
   def current_info
     {tax_rate: self.tax_rate}.merge(self.current_resource_info)
   end
@@ -103,4 +103,9 @@ class City < ActiveRecord::Base
     ((Time.now - last_updated_resource_time) / 3600 * agricultural_output_per_hour).round
   end
 
+  # TODO: 距离上次更新 的 食物消耗
+  # (当前时间 - 上一次更新时间)*每小时食物消耗
+  # @return[Fixnum]
+  def food_expend
+  end
 end
