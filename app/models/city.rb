@@ -73,7 +73,7 @@ class City < ActiveRecord::Base
   # 当前食物数量
   # @return[Fixnum]
   def current_food
-    food_increase + self.food
+    [0,food_increase + self.food - food_expend].max
   end
 
   # 调节税率
@@ -98,14 +98,30 @@ class City < ActiveRecord::Base
   # (当前时间 - 上一次更新时间)*每小时食物产量
   # @return[Fixnum]
   def food_increase
-    agricultural_output_per_hour = self.capital ? AgriculturalOutputPerHourOfTheCapital : AgriculturalOutputPerHour
-    last_updated_resource_time   = self.last_updated_resource_at || self.created_at
     ((Time.now - last_updated_resource_time) / 3600 * agricultural_output_per_hour).round
   end
 
-  # TODO: 距离上次更新 的 食物消耗
-  # (当前时间 - 上一次更新时间)*每小时食物消耗
+  # 距离上次更新 的 食物消耗
+  # (当前时间 - 上一次更新时间)*每分钟食物消耗
   # @return[Fixnum]
   def food_expend
+    ((Time.now - last_updated_resource_time) / 60 *  food_expend_pre_min).round 
+  end
+  
+  # 每小时的粮食产量
+  def agricultural_output_per_hour
+    self.capital ? AgriculturalOutputPerHourOfTheCapital : AgriculturalOutputPerHour
+  end
+  
+  # 没分钟的粮食消耗
+  def food_expend_pre_min 
+    Troop::SoldierTypes.keys.sum do |soldier_type|
+      self.send("#{soldier_type}_number").to_i * Troop::Rations[soldier_type]
+    end  
+  end
+
+  # 最后一次更新资源的时间
+  def last_updated_resource_time
+    self.last_updated_resource_at || self.created_at
   end
 end

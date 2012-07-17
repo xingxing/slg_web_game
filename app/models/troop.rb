@@ -10,9 +10,22 @@ class Troop < ActiveRecord::Base
   # 一次性支付的佣金
   Commission = { pikemen: 1 , archer: 3 , cavalry: 10 } 
   # 士兵每小时消耗的口粮
-  Rations = {SoldierTypes[:pikemen] => 10 , SoldierTypes[:archer] => 13 , SoldierTypes[:cavalry] => 30 } 
+  Rations = { pikemen: 10 , archer: 13 , cavalry: 30 } 
 
   validates :soldier_type, :uniqueness => { :scope => :city_id,
     :message => "每个兵种在一个城市只能有一只部队" }
+
+  class << self
+    # 创建 士兵
+    def build attrs={}
+      city = City.find(attrs[:city_id])
+      if  troop = city.send("#{Troop::SoldierTypes.invert[attrs[:soldier_type]]}")
+        troop.update_attributes :number => troop.number + 1
+      else
+        self.create(attrs.merge(:number => 1))
+      end
+      city.update_resource
+    end
+  end
 
 end

@@ -11,5 +11,6 @@ FactoryGirl.define do
     association :city , :factory => :shanghai
     event_type Event::Type[:build]
     ends_at  Time.now
+    content  { Oj.dump({ klass: 'Troop' , attrs: {city_id: 2 ,soldier_type: :cavalry}}) }
   end
 end

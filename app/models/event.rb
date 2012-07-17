@@ -67,7 +67,7 @@ class Event < ActiveRecord::Base
     def plans_to_build_soldier city_id,soldier_type,queue_index=1
       self.create( city_id: city_id,
                    event_type: Type[:build],
-                   content: Oj.dump({ klass: 'Troop' , :attrs => {soldier_type: soldier_type}}) ,
+                   content: Oj.dump({ klass: 'Troop' , attrs: {city_id: city_id,soldier_type: Troop::SoldierTypes[:soldier_type]}}) ,
                    ends_at: (Troop::TrainTime[soldier_type] * queue_index).minutes.since )
     end
   end
@@ -94,8 +94,9 @@ class Event < ActiveRecord::Base
     Event.plans_to_tax city.id
   end
 
-  # TODO: 建造单位
+  # 建造单位
   def build
+    Kernel.const_get(self.event_content[:klass]).build(self.event_content[:attrs]) unless self.event_content[:klass].blank? 
   end
   
   # TODO: 取消建造单位
@@ -110,21 +111,13 @@ class Event < ActiveRecord::Base
   # 事件数据
   # @return[Hash]
   def event_content
-    unless content.blank?
-      Oj.load content
-    else
-      {}
-    end
+    content.blank? ? {} : Oj.load(content)
   end
 
   # 子事件
   # @return[Array<Event>] 子事件集合
   def sub_events
-    unless event_content[:sub_event_ids].blank?
-      Event.where(id: event_content[:sub_event_ids]).order("ends_at ASC").all
-    else
-      []
-    end
+    event_content[:sub_event_ids].blank? ? [] : Event.where(id: event_content[:sub_event_ids]).order("ends_at ASC").all
   end
 
 

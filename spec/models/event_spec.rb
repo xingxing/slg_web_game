@@ -148,8 +148,8 @@ describe Event do
         
         it "城市的人口和金子不会减少" do
           Event.plans_to_train(@shanghai.id,:pikemen,10)
-          City.find(@shanghai.id).glod.should == 100 - 10 * 5
-          City.find(@shanghai.id).population.should == 900 - 10 * 5
+          @shanghai.reload.glod.should == 100 - 10 * 5
+          @shanghai.reload.population.should == 900 - 10 * 5
         end
       end
 
@@ -186,12 +186,12 @@ describe Event do
 
       it "应该 花费该城市的训练金" do
         @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
-        City.find(@shanghai.id).glod.should == 100 - 10
+        @shanghai.reload.glod.should == 100 - 10
       end
 
       it "应该 将城市人口去掉训练的人数" do
         @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
-        City.find(@shanghai.id).population.should == 900 - 10
+        @shanghai.reload.population.should == 900 - 10
       end
     end
     
@@ -215,6 +215,14 @@ describe Event do
       it "应该 返回nil" do
         @training.should == nil
       end
+    end
+  end
+
+  describe "建造单位" do
+    it "调用相应类中build方法,以事件数据中的attr作为参数" do
+      build_soldier = FactoryGirl.create(:build_soldier)
+      Troop.should_receive(:build).with({city_id: 2,soldier_type: :cavalry} )
+      build_soldier.build
     end
   end
 end

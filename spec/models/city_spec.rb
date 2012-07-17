@@ -57,11 +57,16 @@ describe City do
     end
 
     describe "食物数量" do
-      it "应该为 距离上次更新的食物增长+上次更新的食物产量" do
-        now = Time.now
-        hours = rand(10)
-        @beijing.last_updated_resource_at = now.ago(3600*hours)
-        @beijing.current_resource_info[:food].should == 10000 * hours + @beijing.food
+      it "应该为 距离上次更新的食物增长+上次更新的食物产量-距离上次更新 的 食物消耗" do
+        FactoryGirl.create(:pikemen,:city_id => @beijing.id)
+        @beijing.last_updated_resource_at = 3.hours.ago
+        @beijing.current_resource_info[:food].should == 10000 * 3 + @beijing.food - (10*60*10*3)
+      end
+
+      it "耗尽时，应为0(不会变成负数)" do
+        FactoryGirl.create(:cavalry,:city_id => @beijing.id,:number => 1000 )
+        @beijing.last_updated_resource_at = 1.hours.ago
+        @beijing.current_resource_info[:food].should == 0
       end
     end
   end
@@ -96,6 +101,8 @@ describe City do
       @beijing.should_receive(:touch).with(:last_updated_resource_at)
       @beijing.update_resource
     end
+
+
   end
 
   describe "改变税率" do

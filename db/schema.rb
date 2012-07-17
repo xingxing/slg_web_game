@@ -42,6 +42,7 @@ ActiveRecord::Schema.define(:version => 20120717021515) do
     t.integer  "city_id"
     t.integer  "soldier_type"
     t.integer  "number"
+    t.integer  "lock_version"
     t.datetime "created_at",   :null => false
     t.datetime "updated_at",   :null => false
   end
