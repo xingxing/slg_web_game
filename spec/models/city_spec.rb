@@ -166,5 +166,14 @@ describe City do
       @cavalry.city.cavalry_number.should == 0
     end
   end
-end
 
+  describe "目前训练的进展" do
+    it "=  尚未造出的兵 / 这批计划的造兵量 * 100 " do
+      @shanghai = FactoryGirl.create(:shanghai,:glod => 1000,:population => 1000)
+      @training = Event.plans_to_train(@shanghai.id,:pikemen,10)
+      @training.sub_events[0].ends
+      @training.sub_events[1].ends
+      @shanghai.reload.current_training_progress[0].should == "#{@training.created_at.to_formatted_s(:db)}开始的训练完成20%" 
+    end
+  end
+end

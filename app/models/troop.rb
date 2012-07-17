@@ -19,7 +19,7 @@ class Troop < ActiveRecord::Base
     # 创建 士兵
     def build attrs={}
       city = City.find(attrs[:city_id])
-      if  troop = city.send("#{Troop::SoldierTypes.invert[attrs[:soldier_type]]}")
+      if  troop = city.send("#{SoldierTypes.invert[attrs[:soldier_type]]}")
         troop.update_attributes :number => troop.number + 1
       else
         self.create(attrs.merge(:number => 1))

@@ -67,7 +67,7 @@ class Event < ActiveRecord::Base
     def plans_to_build_soldier city_id,soldier_type,queue_index=1
       self.create( city_id: city_id,
                    event_type: Type[:build],
-                   content: Oj.dump({ klass: 'Troop' , attrs: {city_id: city_id,soldier_type: Troop::SoldierTypes[:soldier_type]}}) ,
+                   content: Oj.dump({ klass: 'Troop' , attrs: {city_id: city_id,soldier_type: Troop::SoldierTypes[soldier_type]}}) ,
                    ends_at: (Troop::TrainTime[soldier_type] * queue_index).minutes.since )
     end
   end

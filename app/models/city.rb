@@ -65,9 +65,16 @@ class City < ActiveRecord::Base
       food: self.current_food }
   end
   
-  # TODO:查询 城市当前信息  出每一个兵种的士兵数量，以及目前训练的进展（如果有的话）、排队等待接受训练的士兵情况
+  # 查询 城市当前信息  排队等待接受训练的士兵情况
   def current_info
     {tax_rate: self.tax_rate}.merge(self.current_resource_info)
+  end
+
+  # 目前训练的进展 
+  def current_training_progress
+    self.events.where(:event_type=>Event::Type[:train]).map do |training|
+      "#{training.created_at.to_formatted_s(:db)}开始的训练完成#{ (((training.event_content[:number]-training.sub_events.size) / training.event_content[:number].to_f).round(2) * 100).to_i }%"
+    end
   end
 
   # 当前食物数量
