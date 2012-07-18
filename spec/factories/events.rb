@@ -19,7 +19,7 @@ FactoryGirl.define do
     association :target_city, :factory => :taibei
     event_type Event::Type[:send_troops]
     ends_at  Time.now
-    content  { Oj.dump({array: {cavalry: 1000,pikemen: 400},:distance => 200  }) }
+    content  { Oj.dump({array: {pikemen: 4},:distance => 200  }) }
   end
 
   factory :troops_back,:class => Event do

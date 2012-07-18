@@ -124,11 +124,11 @@ class City < ActiveRecord::Base
     ((Time.now - last_updated_resource_time) / 3600 * agricultural_output_per_hour).round
   end
 
-  # TODO:出战及回城的军队消耗 距离上次更新 的 食物消耗
+  # 距离上次更新 的 食物消耗
   # (当前时间 - 上一次更新时间)*每分钟食物消耗
   # @return[Fixnum]
   def food_expend
-    ((Time.now - last_updated_resource_time) / 60 *  food_expend_pre_min).round 
+    ((Time.now - last_updated_resource_time) / 3600 *  food_expend_pre_hour).round 
   end
   
   # 每小时的粮食产量
@@ -136,15 +136,25 @@ class City < ActiveRecord::Base
     self.capital ? AgriculturalOutputPerHourOfTheCapital : AgriculturalOutputPerHour
   end
   
-  # 没分钟的粮食消耗
-  def food_expend_pre_min 
+  # 没小时粮食消耗
+  def food_expend_pre_hour
     Troop::SoldierTypes.keys.sum do |soldier_type|
-      self.send("#{soldier_type}_number").to_i * Troop::Rations[soldier_type]
+      (self.send("#{soldier_type}_number").to_i + troop_number_on_the_road[soldier_type].to_i ) * Troop::Rations[soldier_type]
     end  
   end
 
   # 最后一次更新资源的时间
   def last_updated_resource_time
     self.last_updated_resource_at || self.created_at
+  end
+
+  # 在路上的军团人数
+  def troop_number_on_the_road
+    troop_number = {}
+    self.events.where(["(city_id = ? and event_type = ?) OR (target_city_id = ? and event_type= ?)",
+                       self.id,
+                       Event::Type[:send_troops],
+                       self.id,
+                       Event::Type[:troops_back]]).map{|event| event.event_content[:array]}.inject{|memo, el| memo.merge( el ){|k, old_v, new_v| old_v + new_v}} || {}
   end
 end

@@ -64,23 +64,23 @@ describe Event do
 
     context "如果 发生粮食危机(粮食为0)" do
       before do
-        @taibei = FactoryGirl.create(:taibei,:food => 0)
+        @shanghai = FactoryGirl.create(:shanghai,:food => 0)
 
         @cavalry = FactoryGirl.create(:cavalry,
                                       :number => 10,
-                                      :city_id => @taibei.id)
+                                      :city_id => @shanghai.id)
 
         @pikemen = FactoryGirl.create(:pikemen,
                                       :number => 100,
-                                      :city_id => @taibei.id)
+                                      :city_id => @shanghai.id)
 
         @archer  = FactoryGirl.create(:archer,
                                       :number => 12,
-                                      :city_id => @taibei.id)
+                                      :city_id => @shanghai.id)
       end
 
       it "各个 部队的人数下降10%" do
-        Event.plans_to_tax(@taibei.id).ends
+        Event.plans_to_tax(@shanghai.id).ends
         @pikemen.reload.number.should == 90
         @archer.reload.number.should ==  11
         @cavalry.reload.number.should == 9
