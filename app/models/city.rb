@@ -57,6 +57,22 @@ class City < ActiveRecord::Base
     end
   end  
 
+  # 与另一城市的距离
+  # @param[City]
+  # @return[Fixnum]
+  def distance_from other_city
+    Math.sqrt((self.upper_left_x - other_city.upper_left_x)**2 + (self.upper_left_y - other_city.upper_left_y)**2).round
+  end
+
+  # 是否可以按照部署表出兵
+  # @param [Hash] 部署表 e.g. {pikemen: 5 ,cavalry: 3}
+  # @return [true/false]
+  def can_send_troops? array
+    !(array.any? do |soldier_type,number|
+        number > self.send("#{soldier_type}_number").to_i
+      end)
+  end
+
   # 当前城市资源信息:食物、金子、人口
   # @return[Hash]  
   def current_resource_info  
@@ -108,7 +124,7 @@ class City < ActiveRecord::Base
     ((Time.now - last_updated_resource_time) / 3600 * agricultural_output_per_hour).round
   end
 
-  # 距离上次更新 的 食物消耗
+  # TODO:出战及回城的军队消耗 距离上次更新 的 食物消耗
   # (当前时间 - 上一次更新时间)*每分钟食物消耗
   # @return[Fixnum]
   def food_expend

@@ -2,14 +2,18 @@
 class Event < ActiveRecord::Base
   
   belongs_to :city
-  
+  belongs_to :target_city,:class_name => "City",:foreign_key => :target_city_id
+
   validate :only_5_train_plans_one_city
+  #TODO:  validate :only_5_troop_outside
 
   # 事件类型
   Type = {
     :tax => 1,   # 征税
     :train => 2, # 训练部队
-    :build => 3  # 建造单位(房屋或者士兵)
+    :build => 3,  # 建造单位(房屋或者士兵)
+    :send_troops => 4, # 出兵
+    :troops_back => 5  # 部队回城
   }
 
   class << self
@@ -29,7 +33,7 @@ class Event < ActiveRecord::Base
     def plans_to_train city_id,soldier_type,number
       city = City.find(city_id)
       fee  = Troop::Commission[soldier_type] * number
-      # 子事件 id 
+      # 子事件id集合
       sub_event_ids = []
 
       if city.glod >= fee and city.population >= number  
@@ -70,6 +74,38 @@ class Event < ActiveRecord::Base
                    content: Oj.dump({ klass: 'Troop' , attrs: {city_id: city_id,soldier_type: Troop::SoldierTypes[soldier_type]}}) ,
                    ends_at: (Troop::TrainTime[soldier_type] * queue_index).minutes.since )
     end
+
+    # 计划出兵
+    # @param [Fixnum] 出兵城市ID
+    # @param [Fixnum] 目标城市ID
+    # @param [Hash] 部署表 e.g. {pikemen: 5 ,cavalry: 3}
+    # @return [Event] 
+    def plans_to_send_troops city_id,target_city_id,array
+      city,target_city = City.find(city_id),City.find(target_city_id)
+
+      if city.can_send_troops? array
+        distance = city.distance_from(target_city)
+        mins = (distance / Troop.speed(array)).round
+
+        # 无需更新城市资源，因为 出战部队一样要消耗粮食
+        Troop.war(city,array)
+
+        self.create(city_id: city.id,
+                    target_city_id: target_city.id,
+                    event_type: Type[:send_troops],
+                    ends_at: mins.minutes.since,
+                    content: Oj.dump({array: array,:distance => distance}))
+      end
+    end
+
+    
+    # 计划回城
+    # @param [Event] 出兵计划事件
+    # @param [Hash]  幸存士兵
+    # @return [Event] 回城计划
+    def plans_to_troops_back send_troops_event , array
+      city,target_city = send_troops_event.target_city,send_troops_event.city
+    end
   end
 
   # 完成事件
@@ -91,6 +127,14 @@ class Event < ActiveRecord::Base
                              population: city.population-min_1_and_max_1000(city.population*0.05))
       end
     end
+
+    # 如果发生粮食危机
+    if city.food.zero?
+      city.troops.each do |troop|
+        troop.update_attributes :number => (troop.number * (1-0.1)).round
+      end
+    end
+
     Event.plans_to_tax city.id
   end
 
@@ -103,12 +147,30 @@ class Event < ActiveRecord::Base
   def cancel_train
     city = self.city
     city.update_resource(:population => (city.population + self.sub_events.map{|v| v.destroy }.size))
-    
   end
 
   # 训练一批结束
   def train
     # 什么也不用做
+  end
+
+  # 出兵攻打城市
+  # @return[Event] 回城计划
+  def send_troops
+    target_city,city = self.target_city,self.city
+    # 更新阵亡数字数量前更新双方资源
+    target_city.update_resource
+    city.update_resource
+    # 阵亡
+    target_city.troops.each{|troop| troop.update_attributes :number => [troop.number - rand(troop.number)] }
+    back_array = {}
+
+    self.event_content[:array].each do |soldier_type,number|
+      back_number = number - rand(number)
+      back_array[soldier_type] = back_number if back_number > 0 
+    end
+
+    Event.plans_to_troops_back self,back_array
   end
 
   # 事件数据

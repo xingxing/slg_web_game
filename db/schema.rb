@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120717021515) do
+ActiveRecord::Schema.define(:version => 20120718025956) do
 
   create_table "cities", :force => true do |t|
     t.integer  "player_id"
@@ -34,15 +34,15 @@ ActiveRecord::Schema.define(:version => 20120717021515) do
     t.integer  "event_type"
     t.datetime "ends_at"
     t.text     "content"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at",     :null => false
+    t.datetime "updated_at",     :null => false
+    t.integer  "target_city_id"
   end
 
   create_table "troops", :force => true do |t|
     t.integer  "city_id"
     t.integer  "soldier_type"
     t.integer  "number"
-    t.integer  "lock_version"
     t.datetime "created_at",   :null => false
     t.datetime "updated_at",   :null => false
   end

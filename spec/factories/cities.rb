@@ -20,5 +20,17 @@ FactoryGirl.define do
       name  "上海"
       capital false
     end
+
+    factory :taibei do
+      player_id 2
+      tax_rate 0.2
+      population 100
+      glod     0
+      food     0
+      upper_left_x 103
+      upper_left_y -100
+      name  "台北"
+      capital true
+    end
   end
 end

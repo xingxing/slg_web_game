@@ -62,6 +62,31 @@ describe Event do
       @tax.city.food.should == City::AgriculturalOutputPerHourOfTheCapital
     end
 
+    context "如果 发生粮食危机(粮食为0)" do
+      before do
+        @taibei = FactoryGirl.create(:taibei,:food => 0)
+
+        @cavalry = FactoryGirl.create(:cavalry,
+                                      :number => 10,
+                                      :city_id => @taibei.id)
+
+        @pikemen = FactoryGirl.create(:pikemen,
+                                      :number => 100,
+                                      :city_id => @taibei.id)
+
+        @archer  = FactoryGirl.create(:archer,
+                                      :number => 12,
+                                      :city_id => @taibei.id)
+      end
+
+      it "各个 部队的人数下降10%" do
+        Event.plans_to_tax(@taibei.id).ends
+        @pikemen.reload.number.should == 90
+        @archer.reload.number.should ==  11
+        @cavalry.reload.number.should == 9
+      end
+    end
+
     describe "征税后的人口变动" do
       context "如果 人口数量 < 税率*1000" do
         before do
@@ -250,4 +275,88 @@ describe Event do
     end
   end
 
+  describe "计划出兵" do
+    before do
+      @shanghai = FactoryGirl.create(:shanghai,:food => 100)
+      @taibei   = FactoryGirl.create(:taibei)
+
+      @pikemen = FactoryGirl.create(:pikemen,
+                                    :city_id => @shanghai.id , 
+                                    :number => 10) 
+
+      @cavalry =  FactoryGirl.create(:cavalry,
+                                     :city_id => @shanghai.id,
+                                     :number => 4)
+
+      @archer = FactoryGirl.create(:archer,
+                                   :city_id => @shanghai.id,
+                                   :number => 2)
+      
+    end
+
+    it "需要 计算城市间的距离" do
+      event = Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 2,pikemen: 9}
+      event.event_content[:distance].should == 213
+    end
+
+    it "需要 计算部队的整体移动速度并得到攻击时间(到达时间)" do
+      event = Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 2,pikemen: 9}
+      event.ends_at.strftime("%Y%m%d%X").should == (213/1.5).round.minutes.since.strftime("%Y%m%d%X")
+    end
+
+    it "需要 减少城内戍卫的士兵人数" do
+      Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 2,pikemen: 9}
+      @pikemen.reload.number.should == 10 - 9
+      @cavalry.reload.number.should == 2
+      @archer.reload.number.should == 2
+    end
+  end
+
+  describe "攻击(出兵.ends)" do
+    before do
+      @shanghai = FactoryGirl.create(:shanghai,:food => 100)
+      @taibei   = FactoryGirl.create(:taibei)
+
+      @pikemen = FactoryGirl.create(:pikemen,
+                                    :city_id => @shanghai.id , 
+                                    :number => 10) 
+
+      @cavalry =  FactoryGirl.create(:cavalry,
+                                     :city_id => @shanghai.id,
+                                     :number => 4)
+
+      @archer = FactoryGirl.create(:archer,
+                                   :city_id => @taibei.id,
+                                   :number => 9)
+      @plan = Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 2,pikemen: 9}
+    end
+
+    it "需要 计划回城时间"
+
+    it "需要 计算双方阵亡人数" do
+      Kernel.stub!(:rand).and_return(2)
+      p @plan.target_city 
+      p @taibei
+      @plan.ends
+      @taibei.reload.archer_number.should == 7
+    end
+
+    it "需要 更新目标城市(守方)的资源" do
+      @plan.target_city.should_receive(:update_resource)
+      @plan.ends
+    end
+
+    it "需要 更新己方城市的资源" do
+      @plan.city.should_receive(:update_resource)
+      @plan.ends
+    end
+  end
+
+  describe "计划回城" do
+    it "需要 计算回城时间"
+  end
+
+  describe "回城.ends" do
+    it "增加返回士兵人数到城市部队"
+  end
 end

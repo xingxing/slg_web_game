@@ -13,4 +13,8 @@ FactoryGirl.define do
     ends_at  Time.now
     content  { Oj.dump({ klass: 'Troop' , attrs: {city_id: 2 ,soldier_type: :cavalry}}) }
   end
+
+  factory :send_troops,:class => Event do
+    
+  end
 end
