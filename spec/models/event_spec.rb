@@ -318,27 +318,28 @@ describe Event do
       @taibei   = FactoryGirl.create(:taibei)
 
       @pikemen = FactoryGirl.create(:pikemen,
-                                    :city_id => @shanghai.id , 
+                                    :city => @shanghai , 
                                     :number => 10) 
 
       @cavalry =  FactoryGirl.create(:cavalry,
-                                     :city_id => @shanghai.id,
+                                     :city => @shanghai,
                                      :number => 4)
 
       @archer = FactoryGirl.create(:archer,
-                                   :city_id => @taibei.id,
+                                   :city => @taibei,
                                    :number => 9)
       @plan = Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 2,pikemen: 9}
     end
 
-    it "需要 计划回城时间"
+    it "需要 计划回城时间" do
+      bank_event = @plan.send_troops
+      bank_event.ends_at.should_not == nil
+    end
 
-    it "需要 计算双方阵亡人数" do
-      Kernel.stub!(:rand).and_return(2)
-      p @plan.target_city 
-      p @taibei
-      @plan.ends
-      @taibei.reload.archer_number.should == 7
+    it "己方城市成为目标城市" do
+      bank_event = @plan.send_troops
+      bank_event.target_city.should == @shanghai
+      bank_event.city.should == @taibei
     end
 
     it "需要 更新目标城市(守方)的资源" do
@@ -350,13 +351,5 @@ describe Event do
       @plan.city.should_receive(:update_resource)
       @plan.ends
     end
-  end
-
-  describe "计划回城" do
-    it "需要 计算回城时间"
-  end
-
-  describe "回城.ends" do
-    it "增加返回士兵人数到城市部队"
   end
 end

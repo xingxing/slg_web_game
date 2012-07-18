@@ -105,6 +105,13 @@ class Event < ActiveRecord::Base
     # @return [Event] 回城计划
     def plans_to_troops_back send_troops_event , array
       city,target_city = send_troops_event.target_city,send_troops_event.city
+      distance = send_troops_event.event_content[:distance]
+      mins = (distance / Troop.speed(array)).round
+
+      self.create( :city => city,
+                   :target_city => target_city,
+                   :ends_at => mins.minutes.since,
+                   :content => Oj.dump({array: array}))
     end
   end
 
@@ -161,8 +168,12 @@ class Event < ActiveRecord::Base
     # 更新阵亡数字数量前更新双方资源
     target_city.update_resource
     city.update_resource
+
     # 阵亡
-    target_city.troops.each{|troop| troop.update_attributes :number => [troop.number - rand(troop.number)] }
+    target_city.troops.each do |troop| 
+      troop.update_attributes :number => troop.number - rand(troop.number)
+    end
+
     back_array = {}
 
     self.event_content[:array].each do |soldier_type,number|
@@ -171,6 +182,16 @@ class Event < ActiveRecord::Base
     end
 
     Event.plans_to_troops_back self,back_array
+  end
+
+  # 回城
+  def troops_back
+    back_array = self.event_content[:array]
+
+    self.target_city.troops.each do |troop|
+      soldier_type = Troop::SoldierTypes.invert[troop.soldier_type]
+      troop.update_attributes :number => troop.number + back_array[soldier_type]
+    end
   end
 
   # 事件数据
