@@ -310,6 +310,26 @@ describe Event do
       @cavalry.reload.number.should == 2
       @archer.reload.number.should == 2
     end
+
+    context "如果一个城市已经有5支军队 在出征或回城路上" do
+      before do
+        @s1 =  Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 1,pikemen: 1}
+        @s2 =  Event.plans_to_send_troops @shanghai.id,@taibei.id,{pikemen: 1}
+        @s3 =  Event.plans_to_send_troops @shanghai.id,@taibei.id,{pikemen: 1}
+        @s4 =  Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 1,pikemen: 1}
+        @s5 =  Event.plans_to_send_troops @shanghai.id,@taibei.id,{cavalry: 1,pikemen: 1}
+      end
+
+      it "应该 返回nil" do
+        Event.plans_to_send_troops(@shanghai.id,@taibei.id,{pikemen: 1}).should == nil
+      end
+
+      it "城市 的军队人数不变化" do
+        pikemen_number = @taibei.pikemen_number
+        Event.plans_to_send_troops(@shanghai.id,@taibei.id,{pikemen: 1})
+        @taibei.reload.pikemen_number.should == pikemen_number
+      end
+    end
   end
 
   describe "攻击(出兵.ends)" do

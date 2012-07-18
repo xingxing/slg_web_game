@@ -5,7 +5,7 @@ class Event < ActiveRecord::Base
   belongs_to :target_city,:class_name => "City",:foreign_key => :target_city_id
 
   validate :only_5_train_plans_one_city
-  #TODO:  validate :only_5_troop_outside
+  validate :only_5_troops_outside
 
   # 事件类型
   Type = {
@@ -84,17 +84,25 @@ class Event < ActiveRecord::Base
       city,target_city = City.find(city_id),City.find(target_city_id)
 
       if city.can_send_troops? array
-        distance = city.distance_from(target_city)
-        mins = (distance / Troop.speed(array)).round
+        begin
+           City.transaction do
+            Event.transaction do 
+              distance = city.distance_from(target_city)
+              mins = (distance / Troop.speed(array)).round
 
-        # 无需更新城市资源，因为 出战部队一样要消耗粮食
-        Troop.war(city,array)
+              # 无需更新城市资源，因为 出战部队一样要消耗粮食
+              Troop.war(city,array)
 
-        self.create(city_id: city.id,
-                    target_city_id: target_city.id,
-                    event_type: Type[:send_troops],
-                    ends_at: mins.minutes.since,
-                    content: Oj.dump({array: array,:distance => distance}))
+              self.create!(city_id: city.id,
+                           target_city_id: target_city.id,
+                           event_type: Type[:send_troops],
+                           ends_at: mins.minutes.since,
+                           content: Oj.dump({array: array,:distance => distance}))
+            end
+          end
+        rescue ActiveRecord::RecordInvalid => invalid
+          nil
+        end
       end
     end
 
@@ -216,5 +224,14 @@ class Event < ActiveRecord::Base
   # 每座城市同时可以有最多至5批士兵等待接受训练
   def only_5_train_plans_one_city
     errors.add(:city_id,"每座城市同时可以有最多至5批士兵等待接受训练") if Event.where(city_id: self.city_id,event_type: Type[:train]).count >= 5 and self.event_type == Type[:train] 
+  end
+
+  # 每个城市最多有5支军队 在出征或回城路上
+  def only_5_troops_outside
+    errors.add(:city_id,"每个城市最多有5支军队 在出征或回城路上") if Event.where(["(city_id = ? and event_type = ?) OR (target_city_id = ? and event_type= ?)",
+                                                                                  self.city_id,
+                                                                                  Type[:send_troops],
+                                                                                  self.city_id,
+                                                                                  Type[:troops_back]]).count >= 5 and self.event_type == Type[:send_troops]   
   end
 end
